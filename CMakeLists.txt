@@ -21,72 +21,35 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC OFF)
 
-
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
 #======================================================
-# Poppler
+# Poppler (Linux + Windows через pkg-config)
 #======================================================
 
-#
-# Linux
-#
-# Використовуємо системний Poppler через pkg-config.
-#
-# Windows
-#
-# Надалі будемо використовувати бібліотеки,
-# що лежать всередині Runtime/Poppler.
-#
+find_package(PkgConfig REQUIRED)
 
-if(WIN32)
+pkg_check_modules(
+    POPPLER
+    REQUIRED
+    poppler-cpp
+)
 
-    message(STATUS "Building Windows Portable version")
+message(STATUS "Poppler include: ${POPPLER_INCLUDE_DIRS}")
+message(STATUS "Poppler libs: ${POPPLER_LIBRARIES}")
 
-    #
-    # Каталог Runtime/Poppler.
-    #
-    set(POPPLER_ROOT
-        "${CMAKE_SOURCE_DIR}/Runtime/Poppler")
+include_directories(
 
-    include_directories(
+    include
+    gui
 
-        include
-        gui
+    ${POPPLER_INCLUDE_DIRS}
+)
 
-        "${POPPLER_ROOT}/include"
-    )
+link_directories(
 
-    link_directories(
-
-        "${POPPLER_ROOT}/lib"
-    )
-
-else()
-
-    message(STATUS "Building Linux version")
-
-    find_package(PkgConfig REQUIRED)
-
-    pkg_check_modules(
-        POPPLER
-        REQUIRED
-        poppler-cpp)
-
-    include_directories(
-
-        include
-        gui
-
-        ${POPPLER_INCLUDE_DIRS}
-    )
-
-    link_directories(
-
-        ${POPPLER_LIBRARY_DIRS}
-    )
-
-endif()
+    ${POPPLER_LIBRARY_DIRS}
+)
 
 #======================================================
 # Виконуваний файл
@@ -129,26 +92,11 @@ add_executable(PDFRenamer
 # Бібліотеки
 #======================================================
 
-if(WIN32)
+target_link_libraries(
 
-    target_link_libraries(
+    PDFRenamer
 
-        PDFRenamer
+    Qt5::Widgets
 
-        Qt5::Widgets
-
-        poppler-cpp
-    )
-
-else()
-
-    target_link_libraries(
-
-        PDFRenamer
-
-        Qt5::Widgets
-
-        ${POPPLER_LIBRARIES}
-    )
-
-endif()
+    ${POPPLER_LIBRARIES}
+)
