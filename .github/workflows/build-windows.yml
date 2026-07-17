@@ -2,18 +2,45 @@ name: Build PDFRenamer
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  test:
+  build:
     runs-on: windows-latest
 
+    defaults:
+      run:
+        shell: msys2 {0}
+
     steps:
-      - name: Checkout repository
+
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show environment
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >
+            git
+            base-devel
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-qt5
+            mingw-w64-x86_64-poppler
+            mingw-w64-x86_64-pkg-config
+
+      - name: Configure
         run: |
-          echo "GitHub Actions працює!"
-          dir
+          cmake -B build -G Ninja
+
+      - name: Build
+        run: |
+          cmake --build build -j4
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDFRenamer
+          path: build/PDFRenamer.exe
