@@ -13,7 +13,6 @@ jobs:
         shell: msys2 {0}
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -39,23 +38,39 @@ jobs:
         run: |
           cmake --build build -j4
 
-      - name: Check Qt tools
+      - name: Create portable package
         run: |
-          echo "===== PATH ====="
-          echo $PATH
+          mkdir -p portable/platforms
+          mkdir -p portable/styles
+          mkdir -p portable/imageformats
+          mkdir -p portable/Runtime/LibreOffice
 
-          echo
-          echo "===== Searching for windeployqt ====="
-          which windeployqt || true
-          find /mingw64 -name "windeployqt.exe" 2>/dev/null || true
+          cp build/PDFRenamer.exe portable/
 
-          echo
-          echo "===== Searching for qmake ====="
-          which qmake || true
-          find /mingw64 -name "qmake*" 2>/dev/null || true
+          # Qt DLL
+          cp /mingw64/bin/Qt5Core.dll portable/ || true
+          cp /mingw64/bin/Qt5Gui.dll portable/ || true
+          cp /mingw64/bin/Qt5Widgets.dll portable/ || true
 
-      - name: Upload EXE
+          # MinGW Runtime
+          cp /mingw64/bin/libstdc++-6.dll portable/ || true
+          cp /mingw64/bin/libgcc_s_seh-1.dll portable/ || true
+          cp /mingw64/bin/libwinpthread-1.dll portable/ || true
+
+          # Qt Platform
+          cp /mingw64/share/qt5/plugins/platforms/qwindows.dll portable/platforms/ || true
+
+          # Image formats
+          cp /mingw64/share/qt5/plugins/imageformats/*.dll portable/imageformats/ || true
+
+          # Styles
+          cp /mingw64/share/qt5/plugins/styles/*.dll portable/styles/ || true
+
+          echo "Portable package:"
+          find portable
+
+      - name: Upload Portable
         uses: actions/upload-artifact@v4
         with:
-          name: PDFRenamer
-          path: build/PDFRenamer.exe
+          name: PDFRenamer_Portable
+          path: portable
