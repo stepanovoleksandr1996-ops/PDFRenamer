@@ -17,6 +17,8 @@
 #include "ExcelConverter.h"
 #include "Settings.h"
 
+#include <QProcess>
+#include <QStringList>
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -101,25 +103,45 @@ bool convertExcelToCsv(const std::string& excelFile,
     fs::path excelPath(excelFile);
 
     //--------------------------------------------------
-    // Формування команди
-    //--------------------------------------------------
-
-    std::string command =
-        libreOffice +
-        " --headless "
-        "--convert-to "
-        "\"csv:Text - txt - csv (StarCalc):44,34,76\" "
-        "\"" + excelFile + "\" "
-        "--outdir "
-        "\"" + excelPath.parent_path().string() + "\"";
-
-    //--------------------------------------------------
     // Запуск LibreOffice
     //--------------------------------------------------
 
-    if (std::system(command.c_str()) != 0)
-        return false;
+// Запуск LibreOffice
+//--------------------------------------------------
 
+QString program = QString::fromStdString(getLibreOfficeCommand());
+
+#ifdef _WIN32
+program.remove('"');
+#endif
+
+QStringList arguments;
+
+arguments << "--headless";
+
+arguments << "--convert-to";
+arguments << "csv:Text - txt - csv (StarCalc):44,34,76";
+
+arguments << QString::fromStdString(excelFile);
+
+arguments << "--outdir";
+arguments << QString::fromStdString(excelPath.parent_path().string());
+
+QProcess process;
+
+process.start(program, arguments);
+
+if (!process.waitForStarted())
+    return false;
+
+if (!process.waitForFinished(-1))
+    return false;
+
+if (process.exitStatus() != QProcess::NormalExit)
+    return false;
+
+if (process.exitCode() != 0)
+    return false;
     //--------------------------------------------------
     // Перевірити створення CSV
     //--------------------------------------------------
