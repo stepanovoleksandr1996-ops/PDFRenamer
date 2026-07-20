@@ -47,6 +47,7 @@
 //------------------------------------------------------
 
 #include "ProcessingWorker.h"
+#include "Settings.h"
 
 //------------------------------------------------------
 // Заголовки Qt.
@@ -81,6 +82,7 @@
 //------------------------------------------------------
 
 #include <QApplication>
+#include <QCoreApplication>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
@@ -92,6 +94,7 @@
 #include <QThread>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QFileInfo>
 
 //======================================================
 // Конструктор MainWindow.
@@ -594,6 +597,18 @@ void MainWindow::startProcessing()
     }
 
     //--------------------------------------------------
+// Перевірити LibreOffice.
+//
+// Якщо користувач натиснув
+// "Скасувати", обробку не запускаємо.
+//--------------------------------------------------
+
+if (!ensureLibreOffice())
+{
+    return;
+}
+
+    //--------------------------------------------------
     // Очистити журнал.
     //
     // Якщо цього не зробити,
@@ -928,4 +943,67 @@ void MainWindow::processingFinished()
     //--------------------------------------------------
 
     workerThread = nullptr;
+}
+
+//======================================================
+// ensureLibreOffice()
+//
+// Перевіряє, чи можна знайти LibreOffice.
+//
+// Порядок перевірки:
+//
+// 1. Runtime/LibreOffice/program/soffice.exe
+// 2. config.ini
+// 3. Запитати користувача
+//
+//======================================================
+
+bool MainWindow::ensureLibreOffice()
+{
+#ifdef _WIN32
+
+    //--------------------------------------------------
+    // Спочатку перевіряємо Portable LibreOffice
+    //--------------------------------------------------
+
+    QString portable =
+            QCoreApplication::applicationDirPath() +
+            "/Runtime/LibreOffice/program/soffice.exe";
+
+    if (QFileInfo::exists(portable))
+    {
+        return true;
+    }
+
+    //--------------------------------------------------
+    // Потім перевіряємо config.ini
+    //--------------------------------------------------
+
+    QString saved = Settings::libreOfficePath();
+
+    if (!saved.isEmpty() &&
+        QFileInfo::exists(saved))
+    {
+        return true;
+    }
+
+    //--------------------------------------------------
+    // Просимо користувача вибрати soffice.exe
+    //--------------------------------------------------
+
+    QString file =
+        QFileDialog::getOpenFileName(
+            this,
+            "Виберіть soffice.exe",
+            "",
+            "LibreOffice (soffice.exe)");
+
+    if (file.isEmpty())
+        return false;
+
+    Settings::setLibreOfficePath(file);
+
+#endif
+
+    return true;
 }

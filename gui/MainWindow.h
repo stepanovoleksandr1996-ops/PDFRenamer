@@ -80,6 +80,22 @@ private:
 
     void buildUi();
 
+        //--------------------------------------------------
+    // Перевіряє наявність LibreOffice.
+    //
+    // Послідовність:
+    //
+    // 1. Portable Runtime.
+    // 2. config.ini.
+    // 3. Запитати користувача.
+    //
+    // true  - LibreOffice знайдений.
+    // false - користувач скасував вибір.
+    //--------------------------------------------------
+
+    bool ensureLibreOffice();
+    
+
 private slots:
 
     void selectFolder();

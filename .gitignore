@@ -44,3 +44,10 @@ qrc_*
 .DS_Store
 Thumbs.db
 CHATGPT_CONTEXT.txt
+Runtime/
+logs/
+config/
+resources/
+libs/
+CHATGPT_CONTEXT.txt
+aqtinstall.log

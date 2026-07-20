@@ -2,9 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(PDFRenamer)
 
-if(CMAKE_CROSSCOMPILING)
-    include(cmake/WindowsQt.cmake)
-endif()
+# GitHub Actions збирає безпосередньо під Windows,
+# тому додаткове налаштування Qt для кроскомпіляції не потрібне.
 
 #======================================================
 # C++20
@@ -81,6 +80,7 @@ add_executable(PDFRenamer
 
     src/CsvReader.cpp
     src/ExcelConverter.cpp
+    src/Settings.cpp
 
     src/Renamer.cpp
     src/Utils.cpp

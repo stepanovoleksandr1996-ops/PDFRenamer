@@ -8,17 +8,18 @@
 // Linux:
 //     використовує libreoffice із PATH.
 //
-// Windows Portable:
-//     автоматично шукає
-//     Runtime/LibreOffice/program/soffice.exe
-//     поруч із PDFRenamer.exe.
+// Windows:
+//     1. Спочатку шукає Portable LibreOffice.
+//     2. Якщо його немає — читає шлях із config.ini.
 //
 //======================================================
 
 #include "ExcelConverter.h"
+#include "Settings.h"
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QFileInfo>
 
 #include <cstdlib>
 #include <filesystem>
@@ -28,37 +29,50 @@ namespace fs = std::filesystem;
 //------------------------------------------------------
 // Повертає команду запуску LibreOffice
 //------------------------------------------------------
+
 static std::string getLibreOfficeCommand()
 {
 #ifdef _WIN32
 
-    /*
-     * Portable-версія.
-     *
-     * Очікується структура:
-     *
-     * PDFRenamer.exe
-     * Runtime/
-     *     LibreOffice/
-     *         program/
-     *             soffice.exe
-     */
+    //--------------------------------------------------
+    // Спочатку шукаємо Portable LibreOffice
+    //--------------------------------------------------
 
     QString appDir = QCoreApplication::applicationDirPath();
 
-    QString soffice =
+    QString portableLibreOffice =
             appDir +
             "/Runtime/LibreOffice/program/soffice.exe";
 
-    return "\"" + soffice.toStdString() + "\"";
+    if (QFileInfo::exists(portableLibreOffice))
+    {
+        return "\"" + portableLibreOffice.toStdString() + "\"";
+    }
+
+    //--------------------------------------------------
+    // Якщо Portable немає —
+    // читаємо config.ini
+    //--------------------------------------------------
+
+    QString savedPath = Settings::libreOfficePath();
+
+    if (!savedPath.isEmpty() &&
+        QFileInfo::exists(savedPath))
+    {
+        return "\"" + savedPath.toStdString() + "\"";
+    }
+
+    //--------------------------------------------------
+    // LibreOffice не знайдений
+    //--------------------------------------------------
+
+    return "";
 
 #else
 
-    /*
-     * Linux.
-     *
-     * Використовується системний LibreOffice.
-     */
+    //--------------------------------------------------
+    // Linux
+    //--------------------------------------------------
 
     return "libreoffice";
 
@@ -75,6 +89,15 @@ bool convertExcelToCsv(const std::string& excelFile,
     if (!fs::exists(excelFile))
         return false;
 
+    //--------------------------------------------------
+    // Отримати команду запуску LibreOffice
+    //--------------------------------------------------
+
+    std::string libreOffice = getLibreOfficeCommand();
+
+    if (libreOffice.empty())
+        return false;
+
     fs::path excelPath(excelFile);
 
     //--------------------------------------------------
@@ -82,7 +105,7 @@ bool convertExcelToCsv(const std::string& excelFile,
     //--------------------------------------------------
 
     std::string command =
-        getLibreOfficeCommand() +
+        libreOffice +
         " --headless "
         "--convert-to "
         "\"csv:Text - txt - csv (StarCalc):44,34,76\" "
