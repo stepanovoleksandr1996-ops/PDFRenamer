@@ -30,6 +30,7 @@ jobs:
             mingw-w64-x86_64-qt5
             mingw-w64-x86_64-poppler
             mingw-w64-x86_64-pkg-config
+            p7zip
 
       - name: Configure
         run: |
@@ -41,54 +42,37 @@ jobs:
 
       - name: Create portable package
         run: |
-          mkdir -p portable/platforms
-          mkdir -p portable/styles
-          mkdir -p portable/imageformats
+          mkdir -p portable
           mkdir -p portable/Runtime/LibreOffice
 
           cp build/PDFRenamer.exe portable/
 
-          echo "===== Copy Qt DLL ====="
-
-          cp /mingw64/bin/Qt5Core.dll portable/ || true
-          cp /mingw64/bin/Qt5Gui.dll portable/ || true
-          cp /mingw64/bin/Qt5Widgets.dll portable/ || true
-
-          echo "===== Copy MinGW Runtime ====="
-
-          cp /mingw64/bin/libstdc++-6.dll portable/ || true
-          cp /mingw64/bin/libgcc_s_seh-1.dll portable/ || true
-          cp /mingw64/bin/libwinpthread-1.dll portable/ || true
-
-          echo "===== Copy Poppler ====="
-
-          cp /mingw64/bin/libpoppler-162.dll portable/ || true
-          cp /mingw64/bin/libpoppler-cpp-3.dll portable/ || true
-          cp /mingw64/bin/libpoppler-glib-8.dll portable/ || true
-
-          echo "===== Copy Poppler Dependencies ====="
-
-          cp /mingw64/bin/libfontconfig-1.dll portable/ || true
-          cp /mingw64/bin/libfreetype-6.dll portable/ || true
-          cp /mingw64/bin/libjpeg-8.dll portable/ || true
-          cp /mingw64/bin/liblcms2-2.dll portable/ || true
-          cp /mingw64/bin/libopenjp2-7.dll portable/ || true
-          cp /mingw64/bin/libpng16-16.dll portable/ || true
-          cp /mingw64/bin/libtiff-6.dll portable/ || true
-          cp /mingw64/bin/zlib1.dll portable/ || true
+          echo "===== Copy ALL DLL ====="
+          find /mingw64/bin -maxdepth 1 -name "*.dll" -exec cp {} portable/ \;
 
           echo "===== Copy Qt Plugins ====="
 
-          cp /mingw64/share/qt5/plugins/platforms/qwindows.dll portable/platforms/ || true
-          cp /mingw64/share/qt5/plugins/imageformats/*.dll portable/imageformats/ || true
-          cp /mingw64/share/qt5/plugins/styles/*.dll portable/styles/ || true
+          mkdir -p portable/platforms
+          mkdir -p portable/styles
+          mkdir -p portable/imageformats
+          mkdir -p portable/iconengines
+
+          cp -r /mingw64/share/qt5/plugins/platforms/* portable/platforms/ 2>/dev/null || true
+          cp -r /mingw64/share/qt5/plugins/styles/* portable/styles/ 2>/dev/null || true
+          cp -r /mingw64/share/qt5/plugins/imageformats/* portable/imageformats/ 2>/dev/null || true
+          cp -r /mingw64/share/qt5/plugins/iconengines/* portable/iconengines/ 2>/dev/null || true
 
           echo
-          echo "===== Portable package ====="
+          echo "===== Portable content ====="
           find portable
 
-      - name: Upload Portable
+      - name: Create ZIP
+        run: |
+          cd portable
+          7z a ../PDFRenamer_Portable.zip *
+
+      - name: Upload Portable ZIP
         uses: actions/upload-artifact@v4
         with:
           name: PDFRenamer_Portable
-          path: portable
+          path: PDFRenamer_Portable.zip
