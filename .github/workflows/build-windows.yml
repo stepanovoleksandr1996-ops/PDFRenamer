@@ -41,10 +41,18 @@ jobs:
 
       - name: Check Qt tools
         run: |
-          which qmake
-          qmake --version
-          which windeployqt
-          windeployqt --version
+          echo "===== PATH ====="
+          echo $PATH
+
+          echo
+          echo "===== Searching for windeployqt ====="
+          which windeployqt || true
+          find /mingw64 -name "windeployqt.exe" 2>/dev/null || true
+
+          echo
+          echo "===== Searching for qmake ====="
+          which qmake || true
+          find /mingw64 -name "qmake*" 2>/dev/null || true
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
