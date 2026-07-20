@@ -36,7 +36,11 @@ readCsv(const std::string& csvFile)
 {
     std::unordered_map<std::string, std::string> table;
 
-    std::ifstream file(csvFile);
+    //--------------------------------------------------
+    // Відкриваємо файл у бінарному режимі.
+    // Це дозволяє коректно працювати з UTF-8.
+    //--------------------------------------------------
+    std::ifstream file(csvFile, std::ios::binary);
 
     if (!file.is_open())
     {
@@ -50,6 +54,18 @@ readCsv(const std::string& csvFile)
     // Пропускаємо заголовок
     //==================================================
     std::getline(file, line);
+
+    //--------------------------------------------------
+    // Якщо файл містить UTF-8 BOM,
+    // видаляємо його із першого рядка.
+    //--------------------------------------------------
+    if (line.size() >= 3 &&
+        static_cast<unsigned char>(line[0]) == 0xEF &&
+        static_cast<unsigned char>(line[1]) == 0xBB &&
+        static_cast<unsigned char>(line[2]) == 0xBF)
+    {
+        line.erase(0, 3);
+    }
 
     while (std::getline(file, line))
     {
@@ -77,7 +93,9 @@ readCsv(const std::string& csvFile)
               << table.size()
               << "\n";
 
+    //--------------------------------------------------
     // Для перевірки покажемо перші 5 записів
+    //--------------------------------------------------
     int count = 0;
 
     std::cout << "\nПерші записи CSV:\n";
