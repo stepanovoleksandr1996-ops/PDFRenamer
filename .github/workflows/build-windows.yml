@@ -54,11 +54,28 @@ jobs:
           cp /mingw64/bin/Qt5Gui.dll portable/ || true
           cp /mingw64/bin/Qt5Widgets.dll portable/ || true
 
-          echo "===== Copy MinGW DLL ====="
+          echo "===== Copy MinGW Runtime ====="
 
           cp /mingw64/bin/libstdc++-6.dll portable/ || true
           cp /mingw64/bin/libgcc_s_seh-1.dll portable/ || true
           cp /mingw64/bin/libwinpthread-1.dll portable/ || true
+
+          echo "===== Copy Poppler ====="
+
+          cp /mingw64/bin/libpoppler-162.dll portable/ || true
+          cp /mingw64/bin/libpoppler-cpp-3.dll portable/ || true
+          cp /mingw64/bin/libpoppler-glib-8.dll portable/ || true
+
+          echo "===== Copy Poppler Dependencies ====="
+
+          cp /mingw64/bin/libfontconfig-1.dll portable/ || true
+          cp /mingw64/bin/libfreetype-6.dll portable/ || true
+          cp /mingw64/bin/libjpeg-8.dll portable/ || true
+          cp /mingw64/bin/liblcms2-2.dll portable/ || true
+          cp /mingw64/bin/libopenjp2-7.dll portable/ || true
+          cp /mingw64/bin/libpng16-16.dll portable/ || true
+          cp /mingw64/bin/libtiff-6.dll portable/ || true
+          cp /mingw64/bin/zlib1.dll portable/ || true
 
           echo "===== Copy Qt Plugins ====="
 
@@ -67,24 +84,7 @@ jobs:
           cp /mingw64/share/qt5/plugins/styles/*.dll portable/styles/ || true
 
           echo
-          echo "======================================"
-          echo "Installed Poppler DLL"
-          echo "======================================"
-
-          find /mingw64/bin -iname "*poppler*.dll" || true
-
-          echo
-          echo "======================================"
-          echo "PDF related libraries"
-          echo "======================================"
-
-          find /mingw64/bin | grep -Ei "pdf|freetype|fontconfig|jpeg|png|tiff|lcms|openjp|zlib" || true
-
-          echo
-          echo "======================================"
-          echo "Portable package"
-          echo "======================================"
-
+          echo "===== Portable package ====="
           find portable
 
       - name: Upload Portable
