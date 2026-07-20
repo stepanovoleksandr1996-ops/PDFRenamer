@@ -13,6 +13,7 @@ jobs:
         shell: msys2 {0}
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -47,26 +48,43 @@ jobs:
 
           cp build/PDFRenamer.exe portable/
 
-          # Qt DLL
+          echo "===== Copy Qt DLL ====="
+
           cp /mingw64/bin/Qt5Core.dll portable/ || true
           cp /mingw64/bin/Qt5Gui.dll portable/ || true
           cp /mingw64/bin/Qt5Widgets.dll portable/ || true
 
-          # MinGW Runtime
+          echo "===== Copy MinGW DLL ====="
+
           cp /mingw64/bin/libstdc++-6.dll portable/ || true
           cp /mingw64/bin/libgcc_s_seh-1.dll portable/ || true
           cp /mingw64/bin/libwinpthread-1.dll portable/ || true
 
-          # Qt Platform
+          echo "===== Copy Qt Plugins ====="
+
           cp /mingw64/share/qt5/plugins/platforms/qwindows.dll portable/platforms/ || true
-
-          # Image formats
           cp /mingw64/share/qt5/plugins/imageformats/*.dll portable/imageformats/ || true
-
-          # Styles
           cp /mingw64/share/qt5/plugins/styles/*.dll portable/styles/ || true
 
-          echo "Portable package:"
+          echo
+          echo "======================================"
+          echo "Installed Poppler DLL"
+          echo "======================================"
+
+          find /mingw64/bin -iname "*poppler*.dll" || true
+
+          echo
+          echo "======================================"
+          echo "PDF related libraries"
+          echo "======================================"
+
+          find /mingw64/bin | grep -Ei "pdf|freetype|fontconfig|jpeg|png|tiff|lcms|openjp|zlib" || true
+
+          echo
+          echo "======================================"
+          echo "Portable package"
+          echo "======================================"
+
           find portable
 
       - name: Upload Portable
